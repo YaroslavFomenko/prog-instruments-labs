@@ -1,7 +1,12 @@
 import numpy as np
 import pytest
+from unittest.mock import Mock, patch
 from main import (
-    householder_qr
+    householder_qr,
+    jacobi_method_prettytable,
+    newton_system,
+    F,
+    J
 )
 
 
@@ -46,3 +51,28 @@ def test_householder_qr_all_matrices_from_code(matrix_name, matrix_data):
     print(f"  ✓ Все проверки пройдены для {matrix_name}")
 
 
+def test_newton_system_with_original_functions():
+    """
+    Тест 2: Тестируем метод Ньютона с оригинальными функциями F и J
+    """
+    print("\nТестируем метод Ньютона с функциями из задания 5...")
+
+    X0 = np.array([0.0, -1.0])
+
+    with patch('builtins.print') as mock_print:
+        solution, iterations = newton_system(F, J, X0, tol=1e-4)
+
+        assert mock_print.called, "Должен быть вывод итераций"
+
+    assert solution is not None, "Решение не должно быть None"
+    assert len(solution) == 2, "Решение должно содержать 2 значения (x, y)"
+    assert iterations > 0, "Должна быть выполнена хотя бы одна итерация"
+
+    residual = F(solution)
+    residual_norm = np.linalg.norm(residual)
+
+    assert residual_norm < 1e-3, \
+        f"Решение недостаточно точное! Невязка: {residual_norm}"
+
+    print(f"  ✓ Найдено решение: {solution}, итераций: {iterations}")
+    print(f"  ✓ Невязка: {residual_norm:.2e}")
