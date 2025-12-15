@@ -6,6 +6,7 @@ def back_substitution(R, b):
     """Обратная подстановка для верхней треугольной матрицы"""
     n = len(b)
     x = np.zeros(n)
+
     for i in range(n - 1, -1, -1):
         x[i] = (b[i] - np.dot(R[i, i + 1:], x[i + 1:])) / R[i, i]
     return x
@@ -25,6 +26,25 @@ def solve_with_qr(A, b):
     return x, Q, R
 
 
+def print_system_info(A, b):
+    """Выводит информацию о системе"""
+    print("Матрица A:\n", A)
+    print("Вектор b:", b)
+
+
+def print_solution_comparison(A, b, x_qr):
+    """Сравнивает решение с numpy и вычисляет невязку"""
+    # Проверка с помощью numpy
+    x_np = np.linalg.solve(A, b)
+    print("\nРешение методом QR-разложения: x =", np.round(x_qr, 4))
+    print("Решение numpy: x =", np.round(x_np, 4))
+    print("Разность норм:", np.round(np.linalg.norm(x_qr - x_np), 6))
+
+    # Проверка невязки
+    residual = A @ x_qr - b
+    print("Невязка (Ax - b):", np.round(residual, 6))
+
+
 def run_task2():
     """Выполнение задания 2"""
     # Система для варианта 4
@@ -37,20 +57,11 @@ def run_task2():
 
     b = np.array([13.5, 7.7, -4.7, 2.8], dtype=float)
 
-    print("Матрица A:\n", A)
-    print("Вектор b:", b)
+    print_system_info(A, b)
 
     # Решение методом QR-разложения
     x_qr, Q, R = solve_with_qr(A, b)
-    print("\nРешение методом QR-разложения: x =", np.round(x_qr, 4))
 
-    # Проверка с помощью numpy
-    x_np = np.linalg.solve(A, b)
-    print("Решение numpy: x =", np.round(x_np, 4))
-    print("Разность норм:", np.round(np.linalg.norm(x_qr - x_np), 6))
-
-    # Проверка невязки
-    residual = A @ x_qr - b
-    print("Невязка (Ax - b):", np.round(residual, 6))
+    print_solution_comparison(A, b, x_qr)
 
     return x_qr

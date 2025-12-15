@@ -25,41 +25,53 @@ def plot_function():
     return x_plot, y_plot
 
 
-def bisection(f, a, b, tol=1e-3):
-    """Метод половинного деления"""
-    print(f"\nМетод половинного деления на интервале [{a}, {b}]:")
+def print_iteration_header(method_name, a, b):
+    """Выводит заголовок для итерационного метода"""
+    print(f"\n{method_name} на интервале [{a}, {b}]:")
     print("Итерация\tx\t\tf(x)")
     print("-" * 40)
 
+
+def print_iteration_result(iteration, x, fx):
+    """Выводит результат одной итерации"""
+    print(f"{iteration}\t\t{x:.6f}\t{fx:.6f}")
+
+
+def bisection(f, a, b, tol=1e-3):
+    """Метод половинного деления"""
+    print_iteration_header("Метод половинного деления", a, b)
+
     for i in range(100):
         c = (a + b) / 2
-        print(f"{i + 1}\t\t{c:.6f}\t{f(c):.6f}")
+        fc = f(c)
+        print_iteration_result(i + 1, c, fc)
 
-        if f(c) == 0 or (b - a) / 2 < tol:
+        if fc == 0 or (b - a) / 2 < tol:
             return c, i + 1
-        if f(a) * f(c) < 0:
+
+        if f(a) * fc < 0:
             b = c
         else:
             a = c
+
     return (a + b) / 2, i + 1
 
 
 def chord(f, a, b, tol=1e-4):
     """Метод хорд"""
-    print(f"\nМетод хорд на интервале [{a}, {b}]:")
-    print("Итерация\tx\t\tf(x)")
-    print("-" * 40)
+    print_iteration_header("Метод хорд", a, b)
 
     x_prev = a
     x = a - f(a) * (b - a) / (f(b) - f(a))
 
     for i in range(100):
-        print(f"{i + 1}\t\t{x:.6f}\t{f(x):.6f}")
+        fx = f(x)
+        print_iteration_result(i + 1, x, fx)
 
-        if abs(f(x)) < tol or abs(x - x_prev) < tol:
+        if abs(fx) < tol or abs(x - x_prev) < tol:
             return x, i + 1
 
-        if f(a) * f(x) < 0:
+        if f(a) * fx < 0:
             b = x
         else:
             a = x
@@ -70,27 +82,33 @@ def chord(f, a, b, tol=1e-4):
     return x, i + 1
 
 
-def run_task4():
-    """Выполнение задания 4"""
-    print("Решение нелинейного уравнения")
-
-    # Построение графика
+def analyze_function():
+    """Анализирует функцию на разных интервалах"""
     print("\nАнализ функции на интервалах:")
     print(f"f(-1) = {f(-1):.3f}")
     print(f"f(0) = {f(0):.3f}")
     print(f"f(1) = {f(1):.3f}")
     print(f"f(2) = {f(2):.3f}")
 
-    # Построение графика
-    plot_function()
 
-    # Применение методов
-    x_bisect, iter_bisect = bisection(f, 0, 2)
-    x_chord, iter_chord = chord(f, 0, 2)
-
+def print_results(x_bisect, iter_bisect, x_chord, iter_chord):
+    """Выводит результаты обоих методов"""
     print(f"\nРезультаты:")
     print(f"Метод половинного деления: x = {x_bisect:.5f} (итераций: {iter_bisect})")
     print(f"Метод хорд: x = {x_chord:.5f} (итераций: {iter_chord})")
     print(f"f(x_корень) = {f(x_chord):.2e}")
+
+
+def run_task4():
+    """Выполнение задания 4"""
+    print("Решение нелинейного уравнения")
+
+    analyze_function()
+    plot_function()
+
+    x_bisect, iter_bisect = bisection(f, 0, 2)
+    x_chord, iter_chord = chord(f, 0, 2)
+
+    print_results(x_bisect, iter_bisect, x_chord, iter_chord)
 
     return x_chord
