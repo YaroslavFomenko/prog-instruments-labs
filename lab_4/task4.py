@@ -1,18 +1,23 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from config import (
+    GeneralConfig, FunctionConfig, SizeConfig,
+    ToleranceConfig, IterationConfig, FormatConfig
+)
 
 
 def f(x):
     """Исходная функция: f(x) = x³ - 1.89x² - 2x + 1.76"""
-    return x ** 3 - 1.89 * x ** 2 - 2 * x + 1.76
+    return FunctionConfig.nonlinear_function(x)
 
 
 def plot_function():
     """Построение графика функции для отделения корней"""
-    x_plot = np.linspace(-1, 3, 400)
+    x_min, x_max = SizeConfig.X_RANGE_NONLINEAR
+    x_plot = np.linspace(x_min, x_max, SizeConfig.PLOT_POINTS)
     y_plot = f(x_plot)
 
-    plt.figure(figsize=(10, 6))
+    plt.figure(figsize=GeneralConfig.PLOT_FIGSIZE)
     plt.plot(x_plot, y_plot, 'b-', linewidth=2, label='f(x) = x³ - 1.89x² - 2x + 1.76')
     plt.axhline(y=0, color='k', linestyle='--', alpha=0.7)
     plt.grid(True, alpha=0.3)
@@ -29,24 +34,24 @@ def print_iteration_header(method_name, a, b):
     """Выводит заголовок для итерационного метода"""
     print(f"\n{method_name} на интервале [{a}, {b}]:")
     print("Итерация\tx\t\tf(x)")
-    print("-" * 40)
+    print("-" * FormatConfig.SEPARATOR_WIDTH)
 
 
 def print_iteration_result(iteration, x, fx):
     """Выводит результат одной итерации"""
-    print(f"{iteration}\t\t{x:.6f}\t{fx:.6f}")
+    print(f"{iteration}\t\t{x:.{GeneralConfig.VECTOR_PRECISION}f}\t{fx:.{GeneralConfig.VECTOR_PRECISION}f}")
 
 
-def bisection(f, a, b, tol=1e-3):
+def bisection(f, a, b):
     """Метод половинного деления"""
     print_iteration_header("Метод половинного деления", a, b)
 
-    for i in range(100):
+    for i in range(IterationConfig.BISECTION):
         c = (a + b) / 2
         fc = f(c)
         print_iteration_result(i + 1, c, fc)
 
-        if fc == 0 or (b - a) / 2 < tol:
+        if fc == 0 or (b - a) / 2 < ToleranceConfig.BISECTION:
             return c, i + 1
 
         if f(a) * fc < 0:
@@ -54,21 +59,21 @@ def bisection(f, a, b, tol=1e-3):
         else:
             a = c
 
-    return (a + b) / 2, i + 1
+    return (a + b) / 2, IterationConfig.BISECTION
 
 
-def chord(f, a, b, tol=1e-4):
+def chord(f, a, b):
     """Метод хорд"""
     print_iteration_header("Метод хорд", a, b)
 
     x_prev = a
     x = a - f(a) * (b - a) / (f(b) - f(a))
 
-    for i in range(100):
+    for i in range(IterationConfig.CHORD):
         fx = f(x)
         print_iteration_result(i + 1, x, fx)
 
-        if abs(fx) < tol or abs(x - x_prev) < tol:
+        if abs(fx) < ToleranceConfig.CHORD or abs(x - x_prev) < ToleranceConfig.CHORD:
             return x, i + 1
 
         if f(a) * fx < 0:
@@ -79,24 +84,26 @@ def chord(f, a, b, tol=1e-4):
         x_prev = x
         x = a - f(a) * (b - a) / (f(b) - f(a))
 
-    return x, i + 1
+    return x, IterationConfig.CHORD
 
 
 def analyze_function():
     """Анализирует функцию на разных интервалах"""
     print("\nАнализ функции на интервалах:")
-    print(f"f(-1) = {f(-1):.3f}")
-    print(f"f(0) = {f(0):.3f}")
-    print(f"f(1) = {f(1):.3f}")
-    print(f"f(2) = {f(2):.3f}")
+
+    test_points = [-1, 0, 1, 2]
+    for x in test_points:
+        fx = f(x)
+        sign = "положительное" if fx > 0 else "отрицательное" if fx < 0 else "ноль"
+        print(f"f({x}) = {fx:.3f} ({sign})")
 
 
 def print_results(x_bisect, iter_bisect, x_chord, iter_chord):
     """Выводит результаты обоих методов"""
     print(f"\nРезультаты:")
-    print(f"Метод половинного деления: x = {x_bisect:.5f} (итераций: {iter_bisect})")
-    print(f"Метод хорд: x = {x_chord:.5f} (итераций: {iter_chord})")
-    print(f"f(x_корень) = {f(x_chord):.2e}")
+    print(f"Метод половинного деления: x = {x_bisect:.{GeneralConfig.VECTOR_PRECISION}f} (итераций: {iter_bisect})")
+    print(f"Метод хорд: x = {x_chord:.{GeneralConfig.VECTOR_PRECISION}f} (итераций: {iter_chord})")
+    print(f"Значение функции в корне: f(x) = {f(x_chord):.{GeneralConfig.VECTOR_PRECISION}e}")
 
 
 def run_task4():
@@ -106,8 +113,11 @@ def run_task4():
     analyze_function()
     plot_function()
 
-    x_bisect, iter_bisect = bisection(f, 0, 2)
-    x_chord, iter_chord = chord(f, 0, 2)
+    # Получаем интервал из конфигурации
+    a, b = FunctionConfig.get_root_interval()
+
+    x_bisect, iter_bisect = bisection(f, a, b)
+    x_chord, iter_chord = chord(f, a, b)
 
     print_results(x_bisect, iter_bisect, x_chord, iter_chord)
 

@@ -1,4 +1,8 @@
 import numpy as np
+from config import (
+    GeneralConfig, SizeConfig,
+    ToleranceConfig, FormatConfig
+)
 
 
 def apply_householder(Q, R, i):
@@ -9,7 +13,8 @@ def apply_householder(Q, R, i):
     e[0] = np.linalg.norm(x)
     u = x - e
 
-    if np.linalg.norm(u) < 1e-12:
+    # Используем EPSILON из конфигурации
+    if np.linalg.norm(u) < GeneralConfig.EPSILON:
         return Q, R
 
     v = u / np.linalg.norm(u)
@@ -34,9 +39,9 @@ def householder_qr(A):
 
 def print_matrix_info(Q, R):
     """Выводит информацию о матрицах Q и R"""
-    print("\nQ:\n", np.round(Q, 4))
-    print("R:\n", np.round(R, 4))
-    print("Проверка Q@R:\n", np.round(Q @ R, 4))
+    print(f"\nQ:\n", np.round(Q, GeneralConfig.MATRIX_PRECISION))
+    print(f"R:\n", np.round(R, GeneralConfig.MATRIX_PRECISION))
+    print(f"Проверка Q@R:\n", np.round(Q @ R, GeneralConfig.MATRIX_PRECISION))
 
 
 def print_column_norms(A, R):
@@ -46,14 +51,19 @@ def print_column_norms(A, R):
     norm_col2_A = np.linalg.norm(col2_A)
     norm_col2_R = np.linalg.norm(col2_R)
 
-    print(f"\nНорма второго столбца в A: {norm_col2_A:.6f}")
-    print(f"Норма второго столбца в R: {norm_col2_R:.6f}")
+    print(f"\nНорма второго столбца в A: {norm_col2_A:.{GeneralConfig.VECTOR_PRECISION}f}")
+    print(f"Норма второго столбца в R: {norm_col2_R:.{GeneralConfig.VECTOR_PRECISION}f}")
 
 
 def run_task1():
     """Выполнение задания 1"""
-    # Генерация матрицы
-    A = np.random.randint(-10, 11, (3, 3)).astype(float)
+    # Генерация матрицы с использованием конфигурации
+    A = np.random.randint(
+        SizeConfig.TASK1_RANDOM_MIN,
+        SizeConfig.TASK1_RANDOM_MAX,
+        (SizeConfig.TASK1_MATRIX_ROWS, SizeConfig.TASK1_MATRIX_COLS)
+    ).astype(float)
+
     print("Исходная матрица A:\n", A)
 
     # QR-разложение

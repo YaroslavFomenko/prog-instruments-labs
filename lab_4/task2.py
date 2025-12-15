@@ -1,5 +1,9 @@
 import numpy as np
 from task1 import householder_qr
+from config import (
+    GeneralConfig, SystemConfig,
+    ToleranceConfig, FormatConfig
+)
 
 
 def back_substitution(R, b):
@@ -28,34 +32,33 @@ def solve_with_qr(A, b):
 
 def print_system_info(A, b):
     """Выводит информацию о системе"""
-    print("Матрица A:\n", A)
-    print("Вектор b:", b)
+    print("Матрица A:\n", np.round(A, GeneralConfig.MATRIX_PRECISION))
+    print("Вектор b:", np.round(b, GeneralConfig.VECTOR_PRECISION))
 
 
 def print_solution_comparison(A, b, x_qr):
     """Сравнивает решение с numpy и вычисляет невязку"""
     # Проверка с помощью numpy
     x_np = np.linalg.solve(A, b)
-    print("\nРешение методом QR-разложения: x =", np.round(x_qr, 4))
-    print("Решение numpy: x =", np.round(x_np, 4))
-    print("Разность норм:", np.round(np.linalg.norm(x_qr - x_np), 6))
+
+    print(f"\nРешение методом QR-разложения: x = {np.round(x_qr, GeneralConfig.VECTOR_PRECISION)}")
+    print(f"Решение numpy: x = {np.round(x_np, GeneralConfig.VECTOR_PRECISION)}")
+
+    # Разность норм
+    diff_norm = np.linalg.norm(x_qr - x_np)
+    print(f"Разность норм: {diff_norm:.{GeneralConfig.VECTOR_PRECISION}f}")
 
     # Проверка невязки
     residual = A @ x_qr - b
-    print("Невязка (Ax - b):", np.round(residual, 6))
+    residual_norm = np.linalg.norm(residual)
+    print(f"Норма невязки (Ax - b): {residual_norm:.{GeneralConfig.VECTOR_PRECISION}f}")
+    print(f"Вектор невязки: {np.round(residual, GeneralConfig.VECTOR_PRECISION)}")
 
 
 def run_task2():
     """Выполнение задания 2"""
-    # Система для варианта 4
-    A = np.array([
-        [17.1, -8.3, 14.4, 7.2],
-        [6.4, 8.5, -4.3, 8.8],
-        [8.3, -6.6, 5.8, 12.2],
-        [3.8, 14.2, 6.3, -15.5]
-    ], dtype=float)
-
-    b = np.array([13.5, 7.7, -4.7, 2.8], dtype=float)
+    # Получаем систему из конфигурации
+    A, b = SystemConfig.get_task2_system()
 
     print_system_info(A, b)
 
