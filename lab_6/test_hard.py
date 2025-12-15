@@ -1,9 +1,8 @@
 import numpy as np
 import pytest
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 from main import (
     householder_qr,
-    jacobi_method_prettytable,
     newton_system,
     F,
     J
