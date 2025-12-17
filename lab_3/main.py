@@ -5,134 +5,51 @@ from checksum import calculate_checksum
 
 
 def validate_field(field_name: str, value: str) -> bool:
-    """Проверяет валидность одного поля."""
+    """Проверяет валидность одного поля регулярными выражениями."""
     if not value:
         return False
 
     value = value.strip()
 
-    if field_name == "telephone":
-        return bool(re.match(r'^\+7-\(\d{3}\)-\d{3}-\d{2}-\d{2}$', value))
+    patterns = {
+        "telephone": r'^\+7-\(\d{3}\)-\d{3}-\d{2}-\d{2}$',
 
-    elif field_name == "height":
-        if not re.match(r'^\d\.\d{2}$', value):
-            return False
-        try:
-            h = float(value)
-            return 1.00 <= h <= 2.50
-        except:
-            return False
+        "height": r'^(?:1\.[0-9]{2}|2\.[0-4][0-9]|2\.50)$',
 
-    elif field_name == "inn":
-        return bool(re.match(r'^\d{12}$', value))
+        "inn": r'^\d{12}$',
 
-    elif field_name == "identifier":
-        return bool(re.match(r'^\d{2}-\d{2}/\d{2}$', value))
+        "identifier": r'^\d{2}-\d{2}/\d{2}$',
 
-    elif field_name == "occupation":
+        "occupation": r'^(?=[А-Яа-яЁёA-Za-z])[А-Яа-яЁёA-Za-z](?:(?![_\d]|--|  )[А-Яа-яЁёA-Za-z\s\-])*(?<=[А-Яа-яЁёA-Za-z])$',
+
+        "latitude": r'^(?:-?(?:90(?:\.0+)?|[0-8]?\d(?:\.\d+)?))$',
+
+        "blood_type": r'^(?:A|B|AB|O)[+\u2212\-]$',
+
+        "issn": r'^\d{4}-\d{4}$',
+
+        "uuid": r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
+
+        "date": r'^((?:19\d{2}|20[0-2]\d|202[0-5])-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|3[01])|(?:19|20)(?:[02468][048]|[13579][26])-02-29)$'
+    }
+
+    if field_name not in patterns:
+        return False
+
+    if field_name == "blood_type":
+        value = value.replace('\u2212', '-').upper()
+    elif field_name == "uuid":
         if '_' in value:
             return False
 
-        value_clean = value.strip()
+        value_norm = value.strip('_').lower()
 
-        if not value_clean:
+        if not re.match(patterns[field_name], value_norm):
             return False
-
-        if re.search(r'\d', value_clean):
-            return False
-
-        if not re.match(r'^[А-Яа-яЁёA-Za-z\s\-]+$', value_clean):
-            return False
-
-        if len(value_clean) < 2:
-            return False
-
-        if not re.search(r'[А-Яа-яЁёA-Za-z]', value_clean):
-            return False
-
-        if '  ' in value_clean:
-            return False
-
-        if value_clean.startswith('-') or value_clean.endswith('-'):
-            return False
-
-        if '--' in value_clean:
-            return False
-
-        words = [w for w in value_clean.split() if w]
-
-        if len(words) < 1:
-            return False
-
-        for word in words:
-            if not re.search(r'[А-Яа-яЁёA-Za-z]', word):
-                return False
-
-        for word in words:
-            if word.replace('-', '') == '':
-                return False
 
         return True
 
-    elif field_name == "latitude":
-        if '_' in value:
-            return False
-        if not re.match(r'^-?\d{1,2}\.\d+$', value):
-            return False
-        try:
-            lat = float(value)
-            return -90.0 <= lat <= 90.0
-        except:
-            return False
-
-    elif field_name == "blood_type":
-        if ' ' in value:
-            return False
-
-        value_norm = value.replace('−', '-')
-        return bool(re.match(r'^(A|B|AB|O)[+\-]$', value_norm, re.IGNORECASE))
-
-    elif field_name == "issn":
-        return bool(re.match(r'^\d{4}-\d{4}$', value))
-
-    elif field_name == "uuid":
-        value_norm = value.strip('_').lower()
-
-        if re.match(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$', value_norm):
-            return '_' not in value
-        return False
-
-    elif field_name == "date":
-        if not re.match(r'^\d{4}-\d{2}-\d{2}$', value):
-            return False
-
-        try:
-            year, month, day = map(int, value.split('-'))
-
-            if year < 1900 or year > 2025:
-                return False
-
-            if month < 1 or month > 12:
-                return False
-
-            if day < 1 or day > 31:
-                return False
-
-            if month in [4, 6, 9, 11] and day > 30:
-                return False
-
-            if month == 2:
-                if day > 29:
-                    return False
-                if day == 29 and not (year % 4 == 0 and (year % 100 != 0 or year % 400 == 0)):
-                    return False
-
-            return True
-
-        except:
-            return False
-
-    return False
+    return bool(re.match(patterns[field_name], value))
 
 
 def find_invalid_rows(file_path: str):
@@ -213,3 +130,7 @@ try:
 except Exception as e:
     print(f"Ошибка при подсчете: {e}")
 
+print("\nСтатистика ошибок по полям:")
+for field, count in error_counts.items():
+    if count > 0:
+        print(f"{field}: {count} ошибок")
